@@ -61,9 +61,15 @@ class InvoiceManager {
 
         $userId = (int)$_SESSION['authenticated_user_id'];
 
-        // Vulnerability: Dynamic SQL Injection in ORDER BY with Flawed Sanitization
-        // Junior dev used addslashes() thinking it prevents all SQL injection in ORDER BY clauses
-        $cleanSort = addslashes($sortColumn);
+        $allowedColumns = [
+            'invoice_id'      => 'invoice_id',
+            'customer_id'     => 'customer_id',
+            'amount_cents'    => 'amount_cents',
+            'status'          => 'status',
+            'billing_address' => 'billing_address',
+            'created_at'      => 'created_at',
+        ];
+        $cleanSort = $allowedColumns[$sortColumn] ?? 'created_at';
         $cleanDir = strtoupper($direction) === 'ASC' ? 'ASC' : 'DESC';
 
         $sql = "
