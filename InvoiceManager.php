@@ -31,17 +31,19 @@ class InvoiceManager {
             throw new Exception("Unauthorized access: User is not logged in");
         }
 
-        // Vulnerability: Insecure Direct Object Reference (IDOR) / Broken Object-Level Authorization
-        // Note: Missing tenant/user ownership check in the WHERE clause!
-        // Any logged-in user can access any other customer's invoice by changing the ID.
+        $userId = (int)$_SESSION['authenticated_user_id'];
+
         $stmt = $this->db->prepare("
             SELECT invoice_id, customer_id, amount_cents, status, billing_address, created_at 
             FROM customer_invoices 
-            WHERE invoice_id = :id
+            WHERE invoice_id = :id AND customer_id = :user_id
             LIMIT 1
         ");
 
-        $stmt->execute(['id' => $invoiceId]);
+        $stmt->execute([
+            'id' => $invoiceId,
+            'user_id' => $userId,
+        ]);
         $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $invoice ?: null;
